@@ -9,7 +9,6 @@
  * @author hp
  */
 import java.util.*;
-import java.io.*;
 public class LossyImage {
     
     public static void printArray(int[][] array,int edge,int count){
@@ -62,53 +61,70 @@ public class LossyImage {
     }
     public static int[][] retrieveImage(int[][] image,int lossy_conversion_percent,int count){
         int lossy_image[][]=new int[image.length][image.length];
-        if(ones(image)*100/(ones(image)+zeros(image)) < lossy_conversion_percent && zeros(image)*100/(ones(image)+zeros(image)) < lossy_conversion_percent && image.length>=2){
-            //quad2
-            copyArray(
-                    retrieveImage( 
-                            divideAndRule(image, 0, (image.length/4)-1, 0, (image.length/4)-1), lossy_conversion_percent, count
-                    ),image, 0, (image.length/4)-1, 0, (image.length/4)-1 
-            );
+       
+        if(ones(image)*100/(ones(image)+zeros(image)) < lossy_conversion_percent && zeros(image)*100/(ones(image)+zeros(image)) < lossy_conversion_percent && image.length>2){
             //quad1
             copyArray(
                     retrieveImage( 
-                            divideAndRule(image, image.length/4 , image.length-1, 0, (image.length/4)-1), lossy_conversion_percent, count
-                    ),image, image.length/4 , image.length-1, 0, (image.length/4)-1
+                            divideAndRule(image, image.length/2 , image.length-1, 0, (image.length/2)-1), lossy_conversion_percent, count
+                    ),image, image.length/2 , image.length-1, 0, (image.length/2)-1
+            );
+            //quad2
+            copyArray(
+                    retrieveImage( 
+                            divideAndRule(image, 0, (image.length/2)-1, 0, (image.length/2)-1), lossy_conversion_percent, count
+                    ),image, 0, (image.length/2)-1, 0, (image.length/2)-1 
             );
             //quad3
             copyArray(
                     retrieveImage( 
-                            divideAndRule(image, 0, (image.length/4)-1, image.length/4, image.length-1), lossy_conversion_percent, count
-                    ),image, 0, (image.length/4)-1, image.length/4, image.length-1 
+                            divideAndRule(image, 0, (image.length/2)-1, image.length/2, image.length-1), lossy_conversion_percent, count
+                    ),image, 0, (image.length/2)-1, image.length/2, image.length-1 
             );
             //quad4
             copyArray(
                     retrieveImage( 
-                            divideAndRule(image, image.length/4 , image.length-1, image.length/4 , image.length-1), lossy_conversion_percent, count
-                    ),image, image.length/4 , image.length-1, image.length/4 , image.length-1
-            );         
+                            divideAndRule(image, image.length/2 , image.length-1, image.length/2 , image.length-1), lossy_conversion_percent, count
+                    ),image, image.length/2 , image.length-1, image.length/2 , image.length-1
+            );
         }
-        System.arraycopy(image, 0,lossy_image, 0, image.length);        
+        else
+            if(ones(image)*100/(ones(image)+zeros(image)) >= lossy_conversion_percent && image.length>=2){
+                for(int i=0;i<image.length;i++){
+                    for(int j=0;j<image.length;j++){
+                        image[i][j]=1;
+                    }
+                }
+            }
+            else
+                if(zeros(image)*100/(ones(image)+zeros(image)) >= lossy_conversion_percent && image.length>=2){
+                    for(int i=0;i<image.length;i++){
+                        for(int j=0;j<image.length;j++){
+                            image[i][j]=0;
+                        }
+                    }
+                }
+    
+        System.arraycopy(image, 0,lossy_image, 0, image.length);
+        
         return lossy_image;
     }
     
     public static void main(String args[]){ 
         Scanner scan= new Scanner(System.in);
-        int grid_edge_length=0,lossy_conversion_percent=0,one=0,zero=0;
+        int grid_edge_length=0,lossy_conversion_percent=0;
         int count=0;
         while(!scan.hasNext("0")){
             count++;
             grid_edge_length=scan.nextInt();
             lossy_conversion_percent=scan.nextInt();
             int input_grid[][]=new int[grid_edge_length][grid_edge_length];
-            int lossy_grid[][]=new int[grid_edge_length][grid_edge_length];
             for(int i=0;i<grid_edge_length;i++){
                 for(int j=0;j<grid_edge_length;j++){
                     input_grid[i][j]=scan.nextInt();
                 }
-            }
-        retrieveImage(input_grid,lossy_conversion_percent,count);
-        printArray(lossy_grid,grid_edge_length,count); 
+            }        
+            printArray( retrieveImage( input_grid,lossy_conversion_percent,count ),grid_edge_length,count ); 
         }
         scan.close();
     }
