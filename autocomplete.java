@@ -17,6 +17,7 @@ public class autocomplete {
 
 class Trie_Node{
 int wordLength;
+int duplicates;
 boolean endOfWord;
 char text;
 LinkedList<Trie_Node> childrenList;
@@ -24,8 +25,9 @@ LinkedList<Trie_Node> childrenList;
     public Trie_Node(char ch) {
         this.wordLength=0;
         this.endOfWord=false;
-        childrenList=new LinkedList<Trie_Node>();
-        text=ch;    
+        this.childrenList=new LinkedList<Trie_Node>();
+        this.text=ch;
+        this.duplicates=0;
     }
     
     public Trie_Node getSubNode(char ch){
@@ -47,7 +49,20 @@ class Trie{
     }
     
     public String query(String s){
-    return null;  
+        Trie_Node currentNode=root;
+        for(char ch : s.toCharArray()){
+            if(currentNode.getSubNode(ch)!=null){
+                System.out.print(String.valueOf(currentNode.childrenList.toArray()));
+                currentNode=currentNode.getSubNode(ch);
+            }
+            if(currentNode.endOfWord==true){
+                
+                return null;
+            }
+        }
+       
+        
+    return "No strings begin with '"+s+"'";  
     }
     
     public void add(String s){
@@ -91,6 +106,7 @@ class Trie{
                 currentNode=currentNode.getSubNode(ch);
             }
             if(currentNode.endOfWord==true){
+                currentNode.duplicates++;
                 return true;
             }
         }
