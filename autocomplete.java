@@ -11,13 +11,43 @@
 import java.util.*;
 public class autocomplete {
     public static void main(String[] args){
-    
+        Trie t= new Trie();
+        Scanner scan = new Scanner(System.in);
+        int num1=scan.nextInt();
+        for(int i=0;i<num1;i++){
+            String temp=scan.nextLine();
+            t.add(temp);
+            t.find(temp);
+        }
+        int num2=scan.nextInt();
+        for(int i=0;i<num2;i++){
+            String temp=scan.nextLine();
+            switch(temp.substring(0, 3)){
+                case "add":
+                    t.add(temp.substring(4));
+                    break;
+                case "rem":
+                    t.remove(temp.substring(7));
+                    break;
+                case "que":
+                    t.query(temp.substring(6));
+                    break;
+                case "rev":
+                    try{
+                        t.revert(Integer.parseInt(temp.substring(7)));
+                    }catch(NumberFormatException e){
+                        System.out.println("ERROR!\n'revert' is not followed by a number.");
+                    }
+                    break;
+                default: System.out.println("Incorrect Query.");   
+            }
+        }
     }
 }
 
 class Trie_Node{
 int wordLength;
-int duplicates;
+int occurences;
 boolean endOfWord;
 char text;
 LinkedList<Trie_Node> childrenList;
@@ -27,7 +57,7 @@ LinkedList<Trie_Node> childrenList;
         this.endOfWord=false;
         this.childrenList=new LinkedList<Trie_Node>();
         this.text=ch;
-        this.duplicates=0;
+        this.occurences=0;
     }
     
     public Trie_Node getSubNode(char ch){
@@ -106,10 +136,14 @@ class Trie{
                 currentNode=currentNode.getSubNode(ch);
             }
             if(currentNode.endOfWord==true){
-                currentNode.duplicates++;
+                currentNode.occurences++;
                 return true;
             }
         }
     return false;   
+    }
+    
+    public void revert(int num){
+        
     }
 }
