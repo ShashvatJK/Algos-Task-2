@@ -9,41 +9,6 @@
  * @author hp
  */
 import java.util.*;
-public class autocomplete {
-    public static void main(String[] args){
-        Trie t= new Trie();
-        Scanner scan = new Scanner(System.in);
-        int num1=scan.nextInt();
-        for(int i=0;i<num1;i++){
-            String temp=scan.nextLine();
-            t.add(temp);
-            t.find(temp);
-        }
-        int num2=scan.nextInt();
-        for(int i=0;i<num2;i++){
-            String temp=scan.nextLine();
-            switch(temp.substring(0, 3)){
-                case "add":
-                    t.add(temp.substring(4));
-                    break;
-                case "rem":
-                    t.remove(temp.substring(7));
-                    break;
-                case "que":
-                    t.query(temp.substring(6));
-                    break;
-                case "rev":
-                    try{
-                        t.revert(Integer.parseInt(temp.substring(7)));
-                    }catch(NumberFormatException e){
-                        System.out.println("ERROR!\n'revert' is not followed by a number.");
-                    }
-                    break;
-                default: System.out.println("Incorrect Query.");   
-            }
-        }
-    }
-}
 
 class Trie_Node{
 int wordLength;
@@ -53,11 +18,11 @@ char text;
 LinkedList<Trie_Node> childrenList;
 
     public Trie_Node(char ch) {
-        this.wordLength=0;
-        this.endOfWord=false;
-        this.childrenList=new LinkedList<Trie_Node>();
-        this.text=ch;
-        this.occurences=0;
+        wordLength=0;
+        endOfWord=false;
+        childrenList=new LinkedList<Trie_Node>();
+        text=ch;
+        occurences=0;
     }
     
     public Trie_Node getSubNode(char ch){
@@ -72,43 +37,77 @@ LinkedList<Trie_Node> childrenList;
     }
 }
  
-class Trie{
+class Tries{
     Trie_Node root;
-    public Trie(){
+    char Alphabet[]= new char[53];
+    public Tries(){
         root= new Trie_Node(' ');
+        for(int i=0;i<53;i++){
+            if(i<26){
+                Alphabet[i]=(char) (97+i);
+            }
+            else 
+                if(i>=26 && i<52){
+                    Alphabet[i]=(char) (67+i-26);
+                }else{
+                    Alphabet[i]=' ';
+                }
+        }
     }
     
-    public String query(String s){
-        Trie_Node currentNode=root;
+    public void query(Trie_Node currentNode,String s){
+        currentNode=root;
+        String str=s;
+        int count=0;
         for(char ch : s.toCharArray()){
-            if(currentNode.getSubNode(ch)!=null){
-                System.out.print(String.valueOf(currentNode.childrenList.toArray()));
-                currentNode=currentNode.getSubNode(ch);
+            Trie_Node child=currentNode.getSubNode(ch);
+            if(count==s.length()){
+                break;
             }
-            if(currentNode.endOfWord==true){
-                
-                return null;
+            if(child==null){
+                System.out.println("No strings begin with '"+s+"'");
+                return;
+            }else{
+                count++;
+                currentNode=child;
+            }           
+        }         
+        for(char c: Alphabet){
+            
+            if(currentNode.getSubNode(c)!=null){
+                str=str+c;
+                query(currentNode.getSubNode(c),s);
+                if(currentNode.getSubNode(c).endOfWord==true){
+                    System.out.println(str);
+                    
+                }
+            }else{
+                continue;
             }
         }
-       
-        
-    return "No strings begin with '"+s+"'";  
     }
     
-    public void add(String s){
+    public void add(String s){        
         if(find(s)==true){
             System.out.println("String "+s+" exists.");
             return;
         }
         Trie_Node currentNode=root;
+        //System.out.println(currentNode.childrenList.element());
         for(char ch : s.toCharArray()){
-            if(currentNode.getSubNode(ch)==null){
-                currentNode.childrenList.add(new Trie_Node(ch));
+            Trie_Node child = currentNode.getSubNode(ch);
+            if (child != null){
+                currentNode = child;
             }
-            currentNode=currentNode.getSubNode(ch);            
+            else{
+                 currentNode.childrenList.add(new Trie_Node(ch));
+                 currentNode = currentNode.getSubNode(ch);
+            }           
             currentNode.wordLength++;
         }
-        currentNode.endOfWord=true;
+        //
+        currentNode.endOfWord=true;       
+        System.out.println("Added String "+s);
     }
     
     public void remove(String s){
@@ -118,27 +117,33 @@ class Trie{
         }
         Trie_Node currentNode=root;
         for(char ch : s.toCharArray()){
-            if(currentNode.wordLength==1){
-                currentNode.childrenList.remove(currentNode.getSubNode(ch));
+            Trie_Node child = currentNode.getSubNode(ch);
+            if(child.wordLength==1){
+                currentNode.childrenList.remove(child);
                 return;
             }else{
-                currentNode.wordLength--;
-                currentNode=currentNode.getSubNode(ch);
+                child.wordLength--;
+                currentNode=child;
             }
         }
-        currentNode.endOfWord=false;
+        currentNode.endOfWord=false;  
+        System.out.println("Removed String "+s);
     }
     
     public boolean find(String s){
         Trie_Node currentNode=root;
         for(char ch : s.toCharArray()){
-            if(currentNode.getSubNode(ch)!=null){
+            if(currentNode.getSubNode(ch)==null){
+                return false;
+            }else{
                 currentNode=currentNode.getSubNode(ch);
             }
-            if(currentNode.endOfWord==true){
+        }
+        if(currentNode.endOfWord==true){
+            if(currentNode.wordLength==s.length()){
                 currentNode.occurences++;
-                return true;
             }
+            return true;
         }
     return false;   
     }
@@ -147,3 +152,48 @@ class Trie{
         
     }
 }
+
+public class autocomplete {
+    public static void main(String[] args){
+        Tries t= new Tries();
+        Scanner scan = new Scanner(System.in);
+        int num1=Integer.parseInt(scan.nextLine());
+        //System.out.println("Enter the");
+        int i1=0,i2=0;
+        while(i1<num1){
+            String temp=scan.nextLine();
+            t.add(temp);
+            t.find(temp);
+            i1++;
+        }
+        //System.out.println("\n");
+        int num2=Integer.parseInt(scan.nextLine());
+        while(i2<num2){
+            String temp=scan.nextLine();
+            switch(temp.substring(0, 3)){
+                case "add":
+                    t.add(temp.substring(4));
+                    System.out.println(t.find(temp.substring(4)));
+                    break;
+                case "rem":
+                    t.remove(temp.substring(7));
+                    System.out.println(t.find(temp.substring(7)));
+                    break;
+                case "que":
+                    t.query(t.root,temp.substring(6));
+                    break;
+                case "rev":
+                    try{
+                        t.revert(Integer.parseInt(temp.substring(7)));
+                    }catch(NumberFormatException e){
+                        System.out.println("ERROR!\n'revert' is not followed by a number.");
+                    }
+                    break;
+                default: System.out.println("Incorrect Query.");   
+            }
+            i2++;
+        }
+    }
+}
+
+
