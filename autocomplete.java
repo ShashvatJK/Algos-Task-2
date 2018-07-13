@@ -79,7 +79,7 @@ class Tries{
                 query(currentNode.getSubNode(c),s);
                 if(currentNode.getSubNode(c).endOfWord==true){
                     System.out.println(str);
-                    
+                    str=s;  
                 }
             }else{
                 continue;
