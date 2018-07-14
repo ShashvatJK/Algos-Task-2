@@ -10,19 +10,44 @@
  */
 import java.util.*;
 
+class CustomObject {
+    int value1;
+    String value2;
+
+    CustomObject(int occurences, String text) {
+        value1 = occurences;
+        value2 = text;
+    }
+    
+    public String getString(){
+        return value2;
+    }
+    
+    public int getInt(){
+        return value1;
+    }
+    
+    public void setInt(int i){
+        value1=i;
+    }
+    
+    
+}
+
 class Trie_Node{
 int wordLength;
-int occurences;
+int index;
 boolean endOfWord;
 char text;
 LinkedList<Trie_Node> childrenList;
+//
 
     public Trie_Node(char ch) {
         wordLength=0;
         endOfWord=false;
         childrenList=new LinkedList<Trie_Node>();
         text=ch;
-        occurences=0;
+        index=-1;
     }
     
     public Trie_Node getSubNode(char ch){
@@ -39,25 +64,31 @@ LinkedList<Trie_Node> childrenList;
  
 class Tries{
     Trie_Node root;
-    char Alphabet[]= new char[53];
+    List<CustomObject> content=new ArrayList<CustomObject>();
     public Tries(){
         root= new Trie_Node(' ');
-        for(int i=0;i<53;i++){
-            if(i<26){
-                Alphabet[i]=(char) (97+i);
+    }
+    
+    public void getListOfStrings(String s){
+        Object[][] list=new Object[2][content.size()];
+        int k=0;
+        for(int i=0;i<content.size();i++){
+            String temp=content.get(i).getString();
+            if(temp.substring(0,s.length()).equals(s)){
+               list[0][k]=content.get(i).getInt();
+               list[1][k]=temp;
+               System.out.println(list[0][k]+","+list[1][k]);
+               k++;
             }
-            else 
-                if(i>=26 && i<52){
-                    Alphabet[i]=(char) (67+i-26);
-                }else{
-                    Alphabet[i]=' ';
-                }
-        }
+        }    
+    }
+    
+    public void sortByRow(Object arr[][],int row){
+        Arrays.sort(arr[row]);
     }
     
     public void query(Trie_Node currentNode,String s){
         currentNode=root;
-        String str=s;
         int count=0;
         for(char ch : s.toCharArray()){
             Trie_Node child=currentNode.getSubNode(ch);
@@ -72,24 +103,13 @@ class Tries{
                 currentNode=child;
             }           
         }         
-        for(char c: Alphabet){
-            
-            if(currentNode.getSubNode(c)!=null){
-                str=str+c;
-                query(currentNode.getSubNode(c),s);
-                if(currentNode.getSubNode(c).endOfWord==true){
-                    System.out.println(str);
-                    str=s;  
-                }
-            }else{
-                continue;
-            }
-        }
+        getListOfStrings(s);   
     }
     
-    public void add(String s){        
-        if(find(s)==true){
-            System.out.println("String "+s+" exists.");
+    public void add(String s){      
+        
+        if(find(s,'a')==true){
+            System.out.println("String "+s+" added again.");            
             return;
         }
         Trie_Node currentNode=root;
@@ -106,31 +126,44 @@ class Tries{
             currentNode.wordLength++;
         }
         //
-        currentNode.endOfWord=true;       
+        currentNode.endOfWord=true;
+        CustomObject c=new CustomObject(1,s);
+        content.add(c);
+        currentNode.index=content.indexOf(c);
         System.out.println("Added String "+s);
     }
     
     public void remove(String s){
-        if(find(s)==false){
+        if(find(s,'r')==false){
             System.out.println("String "+s+" does not exist.");
             return;
         }
         Trie_Node currentNode=root;
+        
         for(char ch : s.toCharArray()){
-            Trie_Node child = currentNode.getSubNode(ch);
+             Trie_Node child= currentNode.getSubNode(ch);
             if(child.wordLength==1){
-                currentNode.childrenList.remove(child);
+                CustomObject customobj=content.get(child.index);//Array index out of bounds exception  -1
+                //check karke change kar
+                int temp=customobj.getInt();
+                customobj.setInt(--temp);
+                child.wordLength=s.length();
+                if(customobj.getInt()==0){
+                    currentNode.childrenList.remove(child);
+                    content.remove(currentNode.index);
+                    currentNode.endOfWord=false; 
+                }
                 return;
             }else{
                 child.wordLength--;
                 currentNode=child;
             }
         }
-        currentNode.endOfWord=false;  
+        
         System.out.println("Removed String "+s);
     }
     
-    public boolean find(String s){
+    public boolean find(String s, char c){
         Trie_Node currentNode=root;
         for(char ch : s.toCharArray()){
             if(currentNode.getSubNode(ch)==null){
@@ -140,9 +173,11 @@ class Tries{
             }
         }
         if(currentNode.endOfWord==true){
-            if(currentNode.wordLength==s.length()){
-                currentNode.occurences++;
-            }
+            CustomObject customobj=content.get(currentNode.index);
+            int temp=customobj.getInt();
+            if(c=='a'){
+                customobj.setInt(++temp);    
+            }                     
             return true;
         }
     return false;   
@@ -163,33 +198,38 @@ public class autocomplete {
         while(i1<num1){
             String temp=scan.nextLine();
             t.add(temp);
-            t.find(temp);
+            //t.find(temp);
             i1++;
         }
         //System.out.println("\n");
         int num2=Integer.parseInt(scan.nextLine());
         while(i2<num2){
             String temp=scan.nextLine();
-            switch(temp.substring(0, 3)){
-                case "add":
-                    t.add(temp.substring(4));
-                    System.out.println(t.find(temp.substring(4)));
-                    break;
-                case "rem":
-                    t.remove(temp.substring(7));
-                    System.out.println(t.find(temp.substring(7)));
-                    break;
-                case "que":
-                    t.query(t.root,temp.substring(6));
-                    break;
-                case "rev":
-                    try{
-                        t.revert(Integer.parseInt(temp.substring(7)));
-                    }catch(NumberFormatException e){
-                        System.out.println("ERROR!\n'revert' is not followed by a number.");
-                    }
-                    break;
-                default: System.out.println("Incorrect Query.");   
+            //try{
+                switch(temp.substring(0, 3)){
+                    case "add":
+                        t.add(temp.substring(4));
+                        //System.out.println(t.find(temp.substring(4)));
+                        break;
+                    case "rem":
+                        t.remove(temp.substring(7));
+                        //System.out.println(t.find(temp.substring(7)));
+                        break;
+                    case "que":
+                        t.query(t.root,temp.substring(6));
+                        break;
+                    case "rev":
+                        try{
+                            t.revert(Integer.parseInt(temp.substring(7)));
+                        }catch(NumberFormatException e){
+                            System.out.println("ERROR!\n'revert' is not followed by a number.");
+                        }
+                        break;
+                    default: System.out.println("Incorrect Query.");   
+               // }
+           // }catch(Exception e){
+            //    System.out.println("Incorrect Query");
+            //    i2--;
             }
             i2++;
         }
