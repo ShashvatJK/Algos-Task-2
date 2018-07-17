@@ -35,19 +35,19 @@ class CustomObject {
 }
 
 class Trie_Node{
-int wordLength;
-int index;
+int counter;
+//int index;
 boolean endOfWord;
 char text;
 LinkedList<Trie_Node> childrenList;
 //
 
     public Trie_Node(char ch) {
-        wordLength=0;
+        counter=0;
         endOfWord=false;
         childrenList=new LinkedList<Trie_Node>();
         text=ch;
-        index=-1;
+        //index=-1;
     }
     
     public Trie_Node getSubNode(char ch){
@@ -123,13 +123,13 @@ class Tries{
                  currentNode.childrenList.add(new Trie_Node(ch));
                  currentNode = currentNode.getSubNode(ch);
             }           
-            currentNode.wordLength++;
+            currentNode.counter++;
         }
         //
         currentNode.endOfWord=true;
         CustomObject c=new CustomObject(1,s);
         content.add(c);
-        currentNode.index=content.indexOf(c);
+        //currentNode.index=content.indexOf(c);
         System.out.println("Added String "+s);
     }
     
@@ -142,25 +142,30 @@ class Tries{
         
         for(char ch : s.toCharArray()){
              Trie_Node child= currentNode.getSubNode(ch);
-            if(child.wordLength==1){
-                CustomObject customobj=content.get(child.index);//Array index out of bounds exception  -1
-                //check karke change kar
-                int temp=customobj.getInt();
-                customobj.setInt(--temp);
-                child.wordLength=s.length();
-                if(customobj.getInt()==0){
-                    currentNode.childrenList.remove(child);
-                    content.remove(currentNode.index);
-                    currentNode.endOfWord=false; 
+            if(child.counter==1){
+                for(int i=0;i<content.size();i++){
+                    CustomObject customobj=content.get(i);//Array index out of bounds exception  -1
+                    //check karke change kar
+                    
+                    if(customobj.getString().equals(s)){
+                        int temp=customobj.getInt();
+                        customobj.setInt(--temp);
+                        child.counter=s.length();
+                        if(customobj.getInt()==0){
+                            currentNode.childrenList.remove(child);
+                            content.remove(i);
+                            currentNode.endOfWord=false; 
+                        }
+                        System.out.println("Removed String "+s);
+                        return;
+                    }
                 }
-                return;
             }else{
-                child.wordLength--;
+                child.counter--;
                 currentNode=child;
+            
             }
         }
-        
-        System.out.println("Removed String "+s);
     }
     
     public boolean find(String s, char c){
@@ -173,12 +178,16 @@ class Tries{
             }
         }
         if(currentNode.endOfWord==true){
-            CustomObject customobj=content.get(currentNode.index);
-            int temp=customobj.getInt();
-            if(c=='a'){
-                customobj.setInt(++temp);    
-            }                     
-            return true;
+            for(int i=0;i<content.size();i++){
+                CustomObject customobj=content.get(i);
+                if(customobj.getString().equals(s)){
+                    int temp=customobj.getInt();
+                    if(c=='a'){
+                        customobj.setInt(++temp);    
+                    }                     
+                    return true;
+                }
+            }
         }
     return false;   
     }
